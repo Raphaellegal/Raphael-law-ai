@@ -1,5 +1,8 @@
 import customtkinter as ctk
 
+from app.ui.translations import t
+from app.ui.layout_manager import is_rtl
+
 
 class StatusBar(ctk.CTkFrame):
 
@@ -10,7 +13,10 @@ class StatusBar(ctk.CTkFrame):
 
         label = ctk.CTkLabel(
             self,
-            text="Status: Ready"
+            text=t("status_ready")
         )
 
-        label.pack(side="left", padx=10)
+        label.pack(
+            side="right" if is_rtl() else "left",
+            padx=10
+        )

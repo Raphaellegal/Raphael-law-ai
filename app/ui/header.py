@@ -1,5 +1,8 @@
 import customtkinter as ctk
 
+from app.ui.translations import t
+from app.ui.layout_manager import is_rtl
+
 
 class Header(ctk.CTkFrame):
 
@@ -15,18 +18,18 @@ class Header(ctk.CTkFrame):
         )
 
         title.pack(
-            side="left",
+            side="right" if is_rtl() else "left",
             padx=20,
             pady=15
         )
 
         about_button = ctk.CTkButton(
             self,
-            text="About",
+            text=t("about"),
             width=90
         )
 
         about_button.pack(
-            side="right",
+            side="left" if is_rtl() else "right",
             padx=20
         )

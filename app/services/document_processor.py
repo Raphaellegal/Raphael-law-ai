@@ -1,38 +1,61 @@
+import re
+
 from app.models.document_chunk import DocumentChunk
 
 
 class DocumentProcessor:
     """
-    Splits legal documents into manageable chunks.
+    Splits legal documents into meaningful sections.
     """
+
+    def __init__(self):
+        self.parser = LegalParser()
 
     def split_into_chunks(
         self,
         text: str,
-        document_name: str,
-        max_lines: int = 10
+        document_name: str
     ) -> list[DocumentChunk]:
-        """
-        Split a legal document into chunks.
-        """
 
         lines = text.splitlines()
 
         chunks = []
+
         current_chunk = []
 
+        current_chapter = None
+        current_article = None
+
         for line in lines:
+
             line = line.strip()
+
+            if re.match(
+                r"^(SECTION|CHAPTER|CHAPITRE|TITLE|TITRE)",
+                line,
+                re.IGNORECASE
+            ):
+                current_chapter = line
+
+            if re.match(
+                r"^ARTICLE",
+                line,
+                re.IGNORECASE
+            ):
+                current_article = line
 
             if not line:
                 continue
 
-            current_chunk.append(line)
+            # New legal section detected
+            if line.upper().startswith("SECTION") and current_chunk:
 
-            if len(current_chunk) >= max_lines:
                 chunks.append(
                     DocumentChunk(
                         document_name=document_name,
+                        law_name=document_name,
+                        chapter=current_chapter,
+                        article=current_article,
                         chunk_number=len(chunks) + 1,
                         content="\n".join(current_chunk)
                     )
@@ -40,11 +63,17 @@ class DocumentProcessor:
 
                 current_chunk = []
 
-        # Add the last chunk if there is one
+            current_chunk.append(line)
+
+        # Add remaining section
         if current_chunk:
+
             chunks.append(
                 DocumentChunk(
                     document_name=document_name,
+                    law_name=document_name,
+                    chapter=current_chapter,
+                    article=current_article,
                     chunk_number=len(chunks) + 1,
                     content="\n".join(current_chunk)
                 )

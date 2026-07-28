@@ -1,20 +1,29 @@
 import customtkinter as ctk
-from app.core.engine import process_question
+from app.core.raphael_brain import RaphaelBrain
+from app.ui.translations import t
+from app.ui.layout_manager import is_rtl
 import time
 
 
 class ChatArea(ctk.CTkFrame):
 
     def __init__(self, master):
+
+        self.brain = RaphaelBrain()
         super().__init__(master)
 
         # ================= TITLE =================
         title = ctk.CTkLabel(
             self,
-            text="💬 Chat with Raphael",
+            text="💬 " + t("chat_with_raphael"),
             font=("Arial", 20, "bold")
         )
-        title.pack(anchor="w", padx=20, pady=(15, 10))
+
+        title.pack(
+            anchor="e" if is_rtl() else "w",
+            padx=20,
+            pady=(15, 10)
+        )
 
         # ================= CHAT AREA (scrollable) =================
         self.chat_scroll = ctk.CTkScrollableFrame(self)
@@ -34,15 +43,27 @@ class ChatArea(ctk.CTkFrame):
             height=60,
             wrap="word"
         )
-        self.question.pack(side="left", fill="x", expand=True, padx=(0, 10))
+
+        self.question.configure(
+            wrap="word"
+        )
+
+        self.question.pack(
+            side="right" if is_rtl() else "left",
+            fill="x",
+            expand=True,
+            padx=(10,0) if is_rtl() else (0,10)
+        )
 
         self.ask_button = ctk.CTkButton(
             input_frame,
-            text="Ask",
+            text=t("ask"),
             width=100,
             command=self.ask
         )
-        self.ask_button.pack(side="right")
+        self.ask_button.pack(
+            side="left" if is_rtl() else "right"
+        )
 
         self.question.bind("<Return>", self.on_enter)
 
@@ -85,17 +106,22 @@ class ChatArea(ctk.CTkFrame):
             text_color="#808080",
             anchor="w"
         )
-        title.pack(anchor="w", pady=(0, 5))
+        title.pack(
+            anchor="e" if is_rtl() else "w",
+            pady=(0,5)
+        )
 
         # Response text (no bubble)
         answer = ctk.CTkLabel(
             row,
             text=text,
-            justify="left",
-            anchor="w",
+            justify="right" if is_rtl() else "left",
+            anchor="e" if is_rtl() else "w",
             wraplength=700
         )
-        answer.pack(anchor="w")
+        answer.pack(
+            anchor="e" if is_rtl() else "w"
+        )
 
     def scroll_to_bottom(self):
         self.chat_scroll.update_idletasks()
@@ -118,7 +144,7 @@ class ChatArea(ctk.CTkFrame):
         # 🔥 force UI update before AI work
         self.chat_scroll.update_idletasks()
 
-        response = process_question(question)
+        response = self.brain.think(question)
 
         if not response:
             response = "I don't have enough information in the legal documents yet."

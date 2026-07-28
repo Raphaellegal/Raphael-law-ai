@@ -7,7 +7,7 @@ initialize_knowledge()
 brain = RaphaelBrain()
 
 answer = brain.think(
-    "Can my employer terminate my contract?"
+    "ما هي شروط عقد العمل في تونس؟"
 )
 
 print(answer)

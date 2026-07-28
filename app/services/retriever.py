@@ -1,39 +1,44 @@
 from app.models.document_chunk import DocumentChunk
+from app.services.embedding_service import EmbeddingService
+import numpy as np
 
 
 class Retriever:
     """
-    Finds relevant legal information.
+    Finds relevant legal information using semantic similarity.
     """
+
+    def __init__(self):
+        self.embedding_service = EmbeddingService()
 
     def search(
         self,
         chunks: list[DocumentChunk],
         query: str,
-        limit: int = 5
+        limit: int = 3,
+        threshold: float = 0.45
     ):
-        """
-        Temporary keyword search.
-        Later replaced by semantic search.
-        """
+
+        query_embedding = self.embedding_service.create_embedding(
+            query
+        )
 
         results = []
 
-        query_words = query.lower().split()
-
         for chunk in chunks:
 
-            content = chunk.content.lower()
+            if chunk.embedding is None:
+                continue
 
-            score = sum(
-                1
-                for word in query_words
-                if word in content
+            similarity = self.cosine_similarity(
+                query_embedding,
+                chunk.embedding
             )
 
-            if score > 0:
+
+            if similarity >= threshold:
                 results.append(
-                    (score, chunk)
+                    (similarity, chunk)
                 )
 
         results.sort(
@@ -41,7 +46,21 @@ class Retriever:
             reverse=True
         )
 
-        return [
+        selected = [
             chunk
             for score, chunk in results[:limit]
         ]
+
+        return selected
+
+
+    def cosine_similarity(self, a, b):
+
+        a = np.array(a)
+        b = np.array(b)
+
+        return np.dot(a, b) / (
+            np.linalg.norm(a)
+            *
+            np.linalg.norm(b)
+        )

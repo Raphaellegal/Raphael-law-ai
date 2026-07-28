@@ -1,9 +1,14 @@
 import customtkinter as ctk
 
-from app.ui.header import Header
-from app.ui.sidebar import Sidebar
-from app.ui.chat_area import ChatArea
-from app.ui.status_bar import StatusBar
+from app.config.settings import settings
+
+from app.database.database import initialize_database
+from app.ui.app_shell import AppShell
+from app.core.language_manager import language_manager
+from app.ui.create_account_page import CreateAccountPage
+from app.ui.login_page import LoginPage
+from app.ui.language_setup import LanguageSetup
+
 
 
 def start_gui():
@@ -11,37 +16,79 @@ def start_gui():
     ctk.set_appearance_mode("dark")
     ctk.set_default_color_theme("blue")
 
+    initialize_database()
+
     window = ctk.CTk()
 
-    window.title("Raphael Legal AI")
+
+    def language_selected(language):
+
+        language_manager.set_interface_language(language)
+
+        language_page.destroy()
+
+        show_login()
+
+
+    window.title(
+        f"{settings.app_name} v{settings.version}"
+    )
 
     window.geometry("1200x700")
     window.minsize(1000, 650)
 
-    # ================= HEADER =================
+    def clear_window():
 
-    Header(window)
+        for widget in window.winfo_children():
+            widget.destroy()
 
-    # ================= MAIN AREA =================
 
-    main_frame = ctk.CTkFrame(window)
-    main_frame.pack(fill="both", expand=True, padx=10, pady=10)
+    def show_login():
 
-    # configure grid layout (THIS IS IMPORTANT)
-    main_frame.grid_columnconfigure(0, weight=1)
-    main_frame.grid_columnconfigure(1, weight=4)
-    main_frame.grid_rowconfigure(0, weight=1)
+        clear_window()
 
-    # Sidebar (left)
-    sidebar = Sidebar(main_frame)
-    sidebar.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
+        LoginPage(
+            window,
+            on_login=login_success,
+            on_create_account=show_create_account,
+            on_change_language=show_language
+        )
 
-    # Chat area (right)
-    chat = ChatArea(main_frame)
-    chat.grid(row=0, column=1, sticky="nsew")
+    def show_language():
 
-    # ================= STATUS BAR =================
+        clear_window()
 
-    StatusBar(window).pack(fill="x")
+        LanguageSetup(
+            window,
+            language_selected
+        )
+
+    def show_create_account():
+
+        clear_window()
+
+        CreateAccountPage(
+            window,
+            language=language_manager.get_interface_language(),
+            on_back=show_login
+        )
+
+    def login_success():
+
+        for widget in window.winfo_children():
+            widget.destroy()
+
+        app_shell = AppShell(window)
+
+        language_manager.listeners.clear()
+
+        language_manager.add_listener(
+            app_shell.refresh
+        )
+
+    language_page = LanguageSetup(
+        window,
+        language_selected
+)
 
     window.mainloop()

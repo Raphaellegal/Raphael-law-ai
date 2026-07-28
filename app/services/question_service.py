@@ -1,7 +1,10 @@
-from app.brain import ask_question
+from app.core.raphael_brain import RaphaelBrain
 
 
 class QuestionService:
+
+    brain = RaphaelBrain()
+
     @staticmethod
     def answer(question: str) -> str:
-        return ask_question(question)
+        return QuestionService.brain.think(question)

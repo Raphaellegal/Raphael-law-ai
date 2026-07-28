@@ -1,4 +1,5 @@
 from app.services.knowledge_service import KnowledgeService
+from app.config.settings import settings
 
 
 knowledge_service = KnowledgeService()
@@ -10,7 +11,7 @@ def initialize_knowledge():
     """
 
     knowledge_service.load_legal_documents(
-        "legal_documents"
+        settings.documents_path
     )
 
 

@@ -1,7 +1,6 @@
 import os
 
-from app.services.document_loader import DocumentLoader
-from app.services.document_processor import DocumentProcessor
+from app.services.document_pipeline import DocumentPipeline
 
 
 class DocumentManager:
@@ -10,8 +9,7 @@ class DocumentManager:
     """
 
     def __init__(self):
-        self.loader = DocumentLoader()
-        self.processor = DocumentProcessor()
+        self.pipeline = DocumentPipeline()
 
     def load_documents(self, folder_path: str):
 
@@ -21,7 +19,9 @@ class DocumentManager:
 
             for file in files:
 
-                if file.endswith(".txt"):
+                print("FOUND FILE:", file)
+
+                if file.endswith(".txt") or file.endswith(".pdf"):
 
                     file_path = os.path.join(root, file)
 
@@ -32,13 +32,11 @@ class DocumentManager:
                         "legal_documents"
                     )
 
-                    text = self.loader.load_text(relative_path)
-
                     document_name = os.path.basename(root)
 
-                    chunks = self.processor.split_into_chunks(
-                        text,
-                        document_name=document_name
+                    chunks = self.pipeline.process(
+                        relative_path,
+                        document_name
                     )
 
                     all_chunks.extend(chunks)
